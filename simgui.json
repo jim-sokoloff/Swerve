@@ -1,4 +1,13 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "ADIS16448[4]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
@@ -10,7 +19,23 @@
     },
     "windows": {
       "/SmartDashboard/Field": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
         "image": "C:\\Users\\boyle\\Downloads\\2160xDarkCroppedFixed.png",
+        "left": 150,
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/On-the-fly path": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Pathfind to Pickup Pos": {
         "window": {
           "visible": true
         }
@@ -20,6 +45,15 @@
   "NetworkTables": {
     "transitory": {
       "SmartDashboard": {
+        "double[]##v_/SmartDashboard/Odometry": {
+          "open": true
+        },
+        "double[]##v_/SmartDashboard/Real States": {
+          "open": true
+        },
+        "double[]##v_/SmartDashboard/Theoretical States": {
+          "open": true
+        },
         "open": true
       }
     }

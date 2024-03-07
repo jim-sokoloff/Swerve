@@ -105,6 +105,13 @@ public class Swerve extends SubsystemBase {
     for (SwerveModule mod : mSwerveMods) {
       mod.setDesiredState(swerveModuleStates[mod.moduleNumber], isOpenLoop);
     }
+    SmartDashboard.putBoolean("FieldRelative", fieldRelative);
+    SmartDashboard.putNumber("drive-x", translation.getX());
+    SmartDashboard.putNumber("drive-y", translation.getY());
+    SmartDashboard.putNumber("rotation", rotation);
+    SmartDashboard.putBoolean("isOpenLoop", isOpenLoop);
+    
+    
   }
 
   /* Used by SwerveControllerCommand in Auto */
@@ -187,7 +194,7 @@ public class Swerve extends SubsystemBase {
     field.setRobotPose(getPose());
     SmartDashboard.putNumber("X Meters", round2dp(getX(), 2));
     SmartDashboard.putNumber("Y Meters", round2dp(getY(), 2));
-    SmartDashboard.putNumber("Est Pose Heaading", round2dp(getPoseHeading(), 2));
+    SmartDashboard.putNumber("Est Pose Heading", round2dp(getPoseHeading(), 2));
 
     SmartDashboard.putNumber("Yaw", round2dp(getHeadingDegrees(), 2));
 

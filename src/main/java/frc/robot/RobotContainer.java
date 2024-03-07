@@ -70,7 +70,7 @@ public class RobotContainer {
             m_swerve,
             () -> driver.getRawAxis(translationAxis),
             () -> -driver.getRawAxis(strafeAxis),
-            () -> -driver.getRawAxis(rotationAxis-1)/3,
+            () -> -driver.getRawAxis(rotationAxis),
             () -> robotCentric.getAsBoolean()));
 
     // Configure the button bindings
@@ -82,8 +82,9 @@ public class RobotContainer {
 
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()`
     SmartDashboard.putData("Auto Mode", autoChooser);
-    
-    
+
+    SmartDashboard.putNumber("rotationAxis", rotationAxis);
+
 
   }
 
