@@ -11,12 +11,16 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+
+import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -38,24 +42,30 @@ import frc.robot.subsystems.*;
  */
 public class RobotContainer {
   /* Controllers */
-  private final CommandJoystick driver = new CommandJoystick(0);
+  public static final CommandJoystick driver = new CommandJoystick(0);
   private final SendableChooser<Command> autoChooser;
   /* Drive Controls */
   private final int translationAxis = XboxController.Axis.kLeftY.value;
   private final int strafeAxis = XboxController.Axis.kLeftX.value;
   private final int rotationAxis = XboxController.Axis.kRightX.value;
   /* Driver Buttons */
-  private final Trigger zeroGyro = driver.button(2);
+  public static final Trigger zeroGyro = driver.button(2);
   private final Trigger robotCentric = driver.button(3);
   private final Trigger liftSolenoid = driver.button(6);
   private final Trigger blockSolenoid = driver.button(1);
   private final Trigger grabNote = driver.button(7);
-  private final Trigger launchNote = driver.button(8); 
+  public static final Trigger launchNote = driver.button(8); 
 
   /* Subsystems */
   private final Swerve m_swerve = new Swerve();
-  private final Pneumatics m_pneumatics = new Pneumatics();
-  private final Launcher m_launcher = new Launcher();
+  //private final Pneumatics m_pneumatics = new Pneumatics();
+  //private final Launcher m_launcher = new Launcher();
+  private final RGB m_RGB = new RGB(0);
+
+  /* Alliance */
+  private static boolean m_allianceIsBlue = false;
+  private static int m_allianceStationNumber = 7;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -63,14 +73,14 @@ public class RobotContainer {
     System.out.println(translationAxis);
     System.out.println(strafeAxis);
     System.out.println(rotationAxis);
-    m_pneumatics.reverseLiftSolenoid();
-    m_pneumatics.reverseBlockSolenoid();
+    //m_pneumatics.reverseLiftSolenoid();
+    //m_pneumatics.reverseBlockSolenoid();
     m_swerve.setDefaultCommand(
         new TeleopSwerve(
             m_swerve,
-            () -> driver.getRawAxis(translationAxis),
+            () -> -driver.getRawAxis(translationAxis),
             () -> -driver.getRawAxis(strafeAxis),
-            () -> -driver.getRawAxis(rotationAxis),
+            () -> -driver.getRawAxis(rotationAxis) / 3,
             () -> robotCentric.getAsBoolean()));
 
     // Configure the button bindings
@@ -85,6 +95,7 @@ public class RobotContainer {
 
     SmartDashboard.putNumber("rotationAxis", rotationAxis);
 
+    m_RGB.LEDs.setRGB(7, 128, 128, 128);
 
   }
 
@@ -111,6 +122,7 @@ public class RobotContainer {
     // 1 -> inverse 1
     // 0 -> 0
     zeroGyro.onTrue(new InstantCommand(() -> m_swerve.zeroGyro()));
+    /*
     liftSolenoid.onTrue(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));
     liftSolenoid.onFalse(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));
     blockSolenoid.onTrue(new InstantCommand(() -> m_pneumatics.toggleBlockSolenoid()));
@@ -119,7 +131,8 @@ public class RobotContainer {
     grabNote.onFalse(new InstantCommand(() -> m_launcher.stopGrabMotors()));
     launchNote.onTrue(new InstantCommand(() -> m_launcher.setLaunchMotors()));
     launchNote.onFalse(new InstantCommand(() -> m_launcher.stopLaunchMotors()));
-    
+    */
+
     //SmartDashboard.putData("Example Auto", new PathPlannerAuto("Example Auto"));
 
     // Add a button to run pathfinding commands to SmartDashboard
@@ -162,6 +175,18 @@ public class RobotContainer {
     }));
   }
 
+
+  public static boolean AllianceIsBlue() {
+    return m_allianceIsBlue;
+  }
+
+  public static boolean AllianceIsRed() {
+    return !AllianceIsBlue();
+  }
+
+  public static int AllianceStationNumber() {
+    return m_allianceStationNumber;
+  }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
@@ -170,6 +195,19 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
     return autoChooser.getSelected();
+  }
+
+  public final void UpdateAlliance() {
+    DriverStation.Alliance color;
+	  color = DriverStation.getAlliance().orElse(Alliance.Blue);
+	  if (color == DriverStation.Alliance.Blue) {
+      m_allianceIsBlue = true;
+    } else {
+      m_allianceIsBlue = false;
+    }
+
+    // 5 is an error of sorts.
+    m_allianceStationNumber = DriverStation.getLocation().orElse(5);
   }
 
 }

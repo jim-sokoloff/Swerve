@@ -2,6 +2,8 @@ package frc.lib.math;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Constants;
 
 public class OnboardModuleState {
 
@@ -20,9 +22,9 @@ public class OnboardModuleState {
         placeInAppropriate0To360Scope(currentAngle.getDegrees(), desiredState.angle.getDegrees());
     double targetSpeed = desiredState.speedMetersPerSecond;
     double delta = targetAngle - currentAngle.getDegrees();
-    if (Math.abs(delta) > 90) {
+    if (Constants.JTS_false || Math.abs(delta) > 90) {
       targetSpeed = -targetSpeed;
-      targetAngle = delta > 90 ? (targetAngle -= 180) : (targetAngle += 180);
+      targetAngle = delta >= 180 ? (targetAngle -= 180) : (targetAngle += 180);
     }
     return new SwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle));
   }
@@ -54,6 +56,16 @@ public class OnboardModuleState {
     } else if (newAngle - scopeReference < -180) {
       newAngle += 360;
     }
+    // double newAngle2 = ((scopeReference % 360) + 720) % 360;
+    // // if (newAngle2 > 180)
+    // //   newAngle2 -= 360;
+    // double difference = newAngle2 - newAngle;
+
+    // if (Math.abs(difference) > 0.2) {
+    //   SmartDashboard.putNumber("difference in 360", difference);
+    //   SmartDashboard.putNumber("difference in 360-1", newAngle);
+    //   SmartDashboard.putNumber("difference in 360-2", newAngle2);
+    // }
     return newAngle;
   }
 }

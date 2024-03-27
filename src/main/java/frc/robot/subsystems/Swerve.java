@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.mechanisms.swerve.SimSwerveDrivetrain;
 //import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest;
 //import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -14,9 +15,12 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADIS16448_IMU;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
 //import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -33,6 +37,13 @@ public class Swerve extends SubsystemBase {
   private SwerveModule[] mSwerveMods;
 
   private Field2d field;
+
+  private boolean JTS_driveEnabled = true;
+
+ /* private final DifferentialDrivetrainSim m_drivetrainSimulator =
+    new SimSwerveDrivetrain(null, null, null, null) DifferentialDrivetrainSim(
+        m_drivetrainSystem, DCMotor.getCIM(2), 8, kTrackWidth, kWheelRadius, null);
+*/
 
   public Swerve() {
     //gyro = new AHRS(SPI.Port.kMXP, (byte) 100);
@@ -97,12 +108,35 @@ public class Swerve extends SubsystemBase {
 
   public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
     SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(
-        fieldRelative
+        fieldRelative && Constants.JTS_false   // HACK
             ? ChassisSpeeds.fromFieldRelativeSpeeds(
                 translation.getX(), translation.getY(), rotation, getYaw())
             : new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
+
     for (SwerveModule mod : mSwerveMods) {
+      if (!JTS_driveEnabled) {
+        swerveModuleStates[mod.moduleNumber].speedMetersPerSecond = 0;
+      }
+      if (mod.moduleNumber > 3)
+        continue;
+    // Module 0 [FL] is good (no clatter on accel/decel)
+      if (mod.moduleNumber == 99)
+        continue;
+    // Module 1 [FR] is good (no clatter on accel/decel)
+      if (mod.moduleNumber == 99)
+        continue;
+    // Module 2 [BL] is good (no clatter on accel/decel)
+      if (mod.moduleNumber == 99)
+        continue;
+    // Module 3 [BR] is good (no clatter on accel/decel)
+      if (mod.moduleNumber == 99)
+        continue;
+      
+      // Slow things down for now.
+      if (Constants.JTS_true)
+        swerveModuleStates[mod.moduleNumber].speedMetersPerSecond *= Constants.JTS_driveMultiplier;
+
       mod.setDesiredState(swerveModuleStates[mod.moduleNumber], isOpenLoop);
     }
     SmartDashboard.putBoolean("FieldRelative", fieldRelative);
@@ -174,8 +208,6 @@ public class Swerve extends SubsystemBase {
   }
 
   public Rotation2d getYaw() {
-    //return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getYaw())
-    // System.out.println("Gyro angle: " + gyro.getGyroAngleZ());
     return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getGyroAngleZ())
         : Rotation2d.fromDegrees(gyro.getGyroAngleZ());
   }
@@ -186,6 +218,25 @@ public class Swerve extends SubsystemBase {
 
   public ChassisSpeeds getSpeeds() {
     return Constants.Swerve.swerveKinematics.toChassisSpeeds(getStates());
+  }
+
+  /** Update our simulation. This should be run every robot loop in simulation. */
+  public void simulationPeriodic() {
+    // To update our simulation, we set motor voltage inputs, update the
+    // simulation, and write the simulated positions and velocities to our
+    // simulated encoder and gyro. We negate the right side so that positive
+    // voltages make the right side move forward.
+    /* m_drivetrainSimulator.setInputs(
+        m_leftLeader.get() * RobotController.getInputVoltage(),
+        m_rightLeader.get() * RobotController.getInputVoltage());
+    m_drivetrainSimulator.update(0.02);
+
+    m_leftEncoderSim.setDistance(m_drivetrainSimulator.getLeftPositionMeters());
+    m_leftEncoderSim.setRate(m_drivetrainSimulator.getLeftVelocityMetersPerSecond());
+    m_rightEncoderSim.setDistance(m_drivetrainSimulator.getRightPositionMeters());
+    m_rightEncoderSim.setRate(m_drivetrainSimulator.getRightVelocityMetersPerSecond());
+    m_gyroSim.setAngle(-m_drivetrainSimulator.getHeading().getDegrees());
+    */
   }
 
   @Override

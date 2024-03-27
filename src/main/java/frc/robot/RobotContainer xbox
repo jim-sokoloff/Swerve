@@ -53,8 +53,8 @@ public class RobotContainer {
   private final JoystickButton launchMotors = new JoystickButton(driver, XboxController.Button.kA.value);
   /* Subsystems */
   private final Swerve m_swerve = new Swerve();
-  private final Pneumatics m_pneumatics = new Pneumatics();
-  private final Launcher m_launcher = new Launcher();
+//  private final Pneumatics m_pneumatics = new Pneumatics();
+//  private final Launcher m_launcher = new Launcher();
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.

@@ -41,22 +41,23 @@ public class SwerveModule extends SubsystemBase {
 
   public SwerveModule(int moduleNumber, SwerveModuleConstants moduleConstants) {
     this.moduleNumber = moduleNumber;
-    angleOffset = moduleConstants.angleOffset;
+    angleOffset = moduleConstants.m_angleOffset;
 
     /* Angle Motor Config */
-    angleMotor = new CANSparkMax(moduleConstants.angleMotorID, MotorType.kBrushless);
+    angleMotor = new CANSparkMax(moduleConstants.m_angleMotorID, MotorType.kBrushless);
     integratedAngleEncoder = angleMotor.getEncoder();
     angleController = angleMotor.getPIDController();
     configAngleMotor();
 
-    m_turnCancoder = new CANcoder(moduleConstants.canCoderID, "CV1");
+    m_turnCancoder = new CANcoder(moduleConstants.m_canCoderID, "rio");
 
-    var can_config = new CANcoderConfiguration();
-    can_config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
-    m_turnCancoder.getConfigurator().apply(can_config);
+    // Use Phoenix Tuner X to setup the CANCoders, not the code.
+    //var can_config = new CANcoderConfiguration();
+    //can_config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+    // m_turnCancoder.getConfigurator().apply(can_config);
 
     /* Drive Motor Config */
-    driveMotor = new CANSparkMax(moduleConstants.driveMotorID, MotorType.kBrushless);
+    driveMotor = new CANSparkMax(moduleConstants.m_driveMotorID, MotorType.kBrushless);
     driveEncoder = driveMotor.getEncoder();
     driveController = driveMotor.getPIDController();
     configDriveMotor();
@@ -111,7 +112,7 @@ public class SwerveModule extends SubsystemBase {
 
   private void configDriveMotor() {
     driveMotor.restoreFactoryDefaults();
-    CANSparkMaxUtil.setCANSparkMaxBusUsage(driveMotor, Usage.kAll);
+    CANSparkMaxUtil.setCANSparkMaxBusUsage(driveMotor, Usage.kMinimal);
     driveMotor.setSmartCurrentLimit(Constants.Swerve.driveContinuousCurrentLimit);
     driveMotor.setInverted(Constants.Swerve.driveInvert);
     driveMotor.setIdleMode(Constants.Swerve.driveNeutralMode);
@@ -127,7 +128,7 @@ public class SwerveModule extends SubsystemBase {
   }
 
   private void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop) {
-
+    SmartDashboard.putBoolean("isOpenLoop - setSpeed", isOpenLoop);
     if (isOpenLoop) {
       double percentOutput = desiredState.speedMetersPerSecond / Constants.Swerve.maxSpeed;
       driveMotor.setVoltage(percentOutput * RobotController.getBatteryVoltage());
@@ -144,6 +145,9 @@ public class SwerveModule extends SubsystemBase {
     Rotation2d angle = (Math.abs(desiredState.speedMetersPerSecond) <= (Constants.Swerve.maxSpeed * 0.01))
         ? lastAngle
         : desiredState.angle;
+
+    // JTS - HACK: undo that for testing
+    //angle = desiredState.angle;
 
     angleController.setReference(angle.getDegrees(), ControlType.kPosition);
     lastAngle = angle;
@@ -168,6 +172,9 @@ public class SwerveModule extends SubsystemBase {
         round2dp(m_turnCancoder.getAbsolutePosition().getValueAsDouble(), 2));
     SmartDashboard.putNumber(Constants.Swerve.modNames[moduleNumber] + "intcoder",
         round2dp(integratedAngleEncoder.getPosition(), 2));
+
+    SmartDashboard.putNumber("CAN-2-angle" + Constants.Swerve.modNames[moduleNumber], m_turnCancoder.getAbsolutePosition().getValue());
+    SmartDashboard.putString("CAN-2-ver" + Constants.Swerve.modNames[moduleNumber], m_turnCancoder.getVersion().toString());
 
   }
 

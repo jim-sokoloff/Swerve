@@ -22,7 +22,7 @@ public class Launcher extends SubsystemBase {
     moveFeedMotor = new CANSparkMax(18, MotorType.kBrushless);
     grabFeedMotor = new CANSparkMax(13, MotorType.kBrushless);
     launchMotor1 = new CANSparkMax(11, MotorType.kBrushless);
-    launchMotor2 = new CANSparkMax(12, MotorType.kBrushless);
+    launchMotor2 = new CANSparkMax(99, MotorType.kBrushless);
 
     grabFeedMotor.restoreFactoryDefaults();
     moveFeedMotor.restoreFactoryDefaults();

@@ -3,6 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
@@ -17,9 +18,13 @@ public class TeleopSwerve extends Command {
   private DoubleSupplier rotationSup;
   private BooleanSupplier robotCentricSup;
 
-  private SlewRateLimiter translationLimiter = new SlewRateLimiter(0.3);
-  private SlewRateLimiter strafeLimiter = new SlewRateLimiter(0.3);
-  private SlewRateLimiter rotationLimiter = new SlewRateLimiter(0.75);
+  private SlewRateLimiter translationLimiter = new SlewRateLimiter(5.0);
+  private SlewRateLimiter strafeLimiter = new SlewRateLimiter(3.5);
+  private SlewRateLimiter rotationLimiter = new SlewRateLimiter(1.5);
+
+  public double translationMax = 5;
+  public double strafeMax = 5;
+  public double rotationMax = 1;
 
   public TeleopSwerve(
       Swerve s_Swerve,
@@ -47,15 +52,19 @@ public class TeleopSwerve extends Command {
             MathUtil.applyDeadband(strafeSup.getAsDouble(), Constants.Swerve.stickDeadband));
     double rotationVal =
         rotationLimiter.calculate(
-            MathUtil.applyDeadband(rotationSup.getAsDouble(), Constants.Swerve.stickDeadbandHigh));
+            MathUtil.applyDeadband(rotationSup.getAsDouble(), Constants.Swerve.stickDeadband));
 
-    SmartDashboard.putNumber("rotationVal", rotationVal);
+    SmartDashboard.putNumber("swerve-1-translationVal", translationVal);
+    SmartDashboard.putNumber("swerve-2-strafeVal", strafeVal);
+    SmartDashboard.putNumber("swerve-3-rotationVal", rotationVal);
 
     /* Drive */
     s_Swerve.drive(
         new Translation2d(translationVal, strafeVal).times(Constants.Swerve.maxSpeed),
-        rotationVal * Constants.Swerve.maxAngularVelocityLow,
+        rotationVal * Constants.Swerve.maxAngularVelocity,
         !robotCentricSup.getAsBoolean(),
         true);
+
   }
+
 }
