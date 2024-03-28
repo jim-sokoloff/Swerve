@@ -143,7 +143,7 @@ public class RobotContainer {
     // A simple inline function to create a function that resets the odometry angle, but then keeps the SetLEDs command running until the command is ended/interupted
     Function<Rotation2d, Command> getResetHeadingCommand = (Rotation2d rotation) -> 
       new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(0)))
-      .andThen(new SetLEDs(m_RGB, LEDColor.Green, LEDMode.Solid));
+      .andThen(new SetLEDs(m_RGB, LEDColor.Gray, LEDMode.Solid));
 
     // I put this on the d-pad because 131 uses the 4 main directions to fix our orientaion (if the robot is facing left, we'll tell the gyro we're at 90*)
     // This only matters once you've gotten field centric working

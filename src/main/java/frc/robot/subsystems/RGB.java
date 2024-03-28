@@ -104,10 +104,7 @@ public class RGB extends SubsystemBase {
 
         // Looping alliance color
         for (int i = 0; i < RobotContainer.AllianceStationNumber(); i++) {
-            if (RobotContainer.AllianceIsBlue())
-                LEDs.setRGB((loopTimeInt + i * 1) % kNumLEDsInRing, 0, 0, 88);
-            else
-                LEDs.setRGB((loopTimeInt + i * 1) % kNumLEDsInRing, 88, 0, 0);
+            LEDs.setRGB((loopTimeInt + i * 1) % kNumLEDsInRing, m_ledColor.red, m_ledColor.green, m_ledColor.blue);
         }
 
         SmartDashboard.putNumber("Match Time", matchTime);
