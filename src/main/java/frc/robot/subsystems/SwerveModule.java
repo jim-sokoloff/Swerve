@@ -51,10 +51,12 @@ public class SwerveModule extends SubsystemBase {
 
     m_turnCancoder = new CANcoder(moduleConstants.m_canCoderID, "rio");
 
-    // Use Phoenix Tuner X to setup the CANCoders, not the code.
-    //var can_config = new CANcoderConfiguration();
-    //can_config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
-    // m_turnCancoder.getConfigurator().apply(can_config);
+    // I actually recommend doing this in the code, not directly in Phoenix Tuner X. If you ever have to swap out a motor (we've had that at competitions many times), it makes replacement faster (all you need to do is set up the CAN ID).
+    // Maybe that matters less for CanCoders since you'll need to measure a new absolute angle, but it's also nice to have the actual offsets stored in git
+    var can_config = new CANcoderConfiguration();
+    can_config.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+    can_config.MagnetSensor.MagnetOffset = angleOffset.getRotations();
+    m_turnCancoder.getConfigurator().apply(can_config);
 
     /* Drive Motor Config */
     driveMotor = new CANSparkMax(moduleConstants.m_driveMotorID, MotorType.kBrushless);
@@ -80,8 +82,8 @@ public class SwerveModule extends SubsystemBase {
   }
 
   public void resetAngleToAbsolute() {
-    double angle = ((m_turnCancoder.getAbsolutePosition().getValueAsDouble() * 360) - angleOffset.getDegrees());
-    integratedAngleEncoder.setPosition(angle);
+    // If you set the absolute offsets so 0* on the CANcoder is facing directly forward on the robot, then this code can just return the exact value
+    integratedAngleEncoder.setPosition(Rotation2d.fromRotations(m_turnCancoder.getAbsolutePosition().getValueAsDouble()).getDegrees());
 
   }
 
@@ -131,7 +133,8 @@ public class SwerveModule extends SubsystemBase {
     SmartDashboard.putBoolean("isOpenLoop - setSpeed", isOpenLoop);
     if (isOpenLoop) {
       double percentOutput = desiredState.speedMetersPerSecond / Constants.Swerve.maxSpeed;
-      driveMotor.setVoltage(percentOutput * RobotController.getBatteryVoltage());
+      driveMotor.set(percentOutput); // You have voltage compensation enabled enabled, so I wonder if this is good enough?
+      // driveMotor.setVoltage(percentOutput * RobotController.getBatteryVoltage());
     } else {
       driveController.setReference(
           desiredState.speedMetersPerSecond,
