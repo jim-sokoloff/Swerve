@@ -205,7 +205,7 @@ public class RGB extends SubsystemBase {
         
         if (fpgaTime < 7)
             clearLEDs();
-        for (int j = 0; j < 5; j++) {
+        for (int j = 0; j < (int) fpgaTime + 1; j++) {
             LED = m_random.nextInt(kTotalLEDs);
             LEDs.setHSV(LED, m_random.nextInt(180), m_random.nextInt(20) + 220, m_random.nextInt(50 + 200));
             LED = m_random.nextInt(kTotalLEDs);
