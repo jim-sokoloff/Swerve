@@ -58,7 +58,7 @@ public class RGB extends SubsystemBase {
         int fpgaTimeInt = (int) fpgaTime;
 
         if (fpgaTimeInt < kIntroTime) {
-            DoIntroAnimation(fpgaTime);
+            DoIntroAnimation2(fpgaTime);
             return;
         }
         // clearLEDs();
@@ -177,7 +177,7 @@ public class RGB extends SubsystemBase {
         m_led.setData(LEDs);
     }
 
-    private void DoIntroAnimation(double fpgaTime) {
+    private void DoIntroAnimation1(double fpgaTime) {
         int LED = 0;
         
         for (int j = 0; j < 10; j++) {
@@ -199,6 +199,26 @@ public class RGB extends SubsystemBase {
         // This method will be called once per scheduler run
         m_led.setData(LEDs);
     }
+
+    private void DoIntroAnimation2(double fpgaTime) {
+        int LED = 0;
+        
+        if (fpgaTime < 7)
+            clearLEDs();
+        for (int j = 0; j < 5; j++) {
+            LED = m_random.nextInt(kTotalLEDs);
+            LEDs.setHSV(LED, m_random.nextInt(180), m_random.nextInt(20) + 220, m_random.nextInt(50 + 200));
+            LED = m_random.nextInt(kTotalLEDs);
+            int greyValue = 255;
+            LEDs.setRGB(LED, greyValue, greyValue, greyValue);
+        }
+
+        SmartDashboard.putNumber("FPGA Time", fpgaTime);
+    
+        // This method will be called once per scheduler run
+        m_led.setData(LEDs);
+    }
+
     
     @Override
     public void simulationPeriodic() {
