@@ -27,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.*;
@@ -42,19 +43,19 @@ import frc.robot.subsystems.*;
  */
 public class RobotContainer {
   /* Controllers */
-  public static final CommandJoystick driver = new CommandJoystick(0);
+  public static final CommandXboxController driver = new CommandXboxController(0);
   private final SendableChooser<Command> autoChooser;
   /* Drive Controls */
-  private final int translationAxis = XboxController.Axis.kLeftY.value;
-  private final int strafeAxis = XboxController.Axis.kLeftX.value;
-  private final int rotationAxis = XboxController.Axis.kRightX.value;
-  /* Driver Buttons */
-  public static final Trigger zeroGyro = driver.button(2);
-  private final Trigger robotCentric = driver.button(3);
-  private final Trigger liftSolenoid = driver.button(6);
-  private final Trigger blockSolenoid = driver.button(1);
-  private final Trigger grabNote = driver.button(7);
-  public static final Trigger launchNote = driver.button(8); 
+  // private final int translationAxis = XboxController.Axis.kLeftY.value;
+  // private final int strafeAxis = XboxController.Axis.kLeftX.value;
+  // private final int rotationAxis = XboxController.Axis.kRightX.value;
+  // /* Driver Buttons */
+  // public static final Trigger zeroGyro = driver.button(2);
+  // private final Trigger robotCentric = driver.button(3);
+  // private final Trigger liftSolenoid = driver.button(6);
+  // private final Trigger blockSolenoid = driver.button(1);
+  // private final Trigger grabNote = driver.button(7);
+  // public static final Trigger launchNote = driver.button(8); 
 
   /* Subsystems */
   private final Swerve m_swerve = new Swerve();
@@ -70,18 +71,12 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
-    System.out.println(translationAxis);
-    System.out.println(strafeAxis);
-    System.out.println(rotationAxis);
+    // System.out.println(translationAxis);
+    // System.out.println(strafeAxis);
+    // System.out.println(rotationAxis);
     //m_pneumatics.reverseLiftSolenoid();
     //m_pneumatics.reverseBlockSolenoid();
-    m_swerve.setDefaultCommand(
-        new TeleopSwerve(
-            m_swerve,
-            () -> -driver.getRawAxis(translationAxis),
-            () -> -driver.getRawAxis(strafeAxis),
-            () -> -driver.getRawAxis(rotationAxis) / 3,
-            () -> robotCentric.getAsBoolean()));
+    m_swerve.setDefaultCommand(createSwerveCommand(true));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -93,10 +88,20 @@ public class RobotContainer {
     autoChooser = AutoBuilder.buildAutoChooser(); // Default auto will be `Commands.none()`
     SmartDashboard.putData("Auto Mode", autoChooser);
 
-    SmartDashboard.putNumber("rotationAxis", rotationAxis);
+    // SmartDashboard.putNumber("rotationAxis", rotationAxis);
 
     m_RGB.LEDs.setRGB(7, 128, 128, 128);
 
+  }
+
+  private TeleopSwerve createSwerveCommand(boolean isRobotCentric) {
+    return new TeleopSwerve(
+      m_swerve,
+      () -> -driver.getLeftY(),
+      () -> -driver.getLeftX(),
+      () -> -driver.getRightX() / 3,
+      () -> isRobotCentric
+    );
   }
 
   /**
@@ -121,7 +126,14 @@ public class RobotContainer {
     // 4 -> 3
     // 1 -> inverse 1
     // 0 -> 0
-    zeroGyro.onTrue(new InstantCommand(() -> m_swerve.zeroGyro()));
+    // Rather than holding down a button to enable robot centric mode, I recommend a toggle system.
+    // The WPILib command and subsytem requirements will handle this well for you
+    driver.back().onTrue(createSwerveCommand(true));
+    driver.start().onTrue(createSwerveCommand(false));
+
+    // I put this on the d-pad because 131 uses the 4 main directions to fix our orientaion (if the robot is facing left, we'll tell the gyro we're at 90*)
+    // This only matters once you've gotten field centric 
+    driver.povUp().onTrue(new InstantCommand(() -> m_swerve.zeroGyro()));
     /*
     liftSolenoid.onTrue(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));
     liftSolenoid.onFalse(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));
