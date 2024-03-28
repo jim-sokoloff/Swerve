@@ -73,7 +73,7 @@ public class RGB extends SubsystemBase {
         final int NINE_CIRCLE_START = 0;
         final int NINE_CIRCLE_END = NINE_CIRCLE_START + 24 - 1;
         final int NINE_STROKE_START = NINE_CIRCLE_END + 1;
-        final int NINE_STROKE_END = NINE_STROKE_START + 10 - 1;
+        final int NINE_STROKE_END = NINE_STROKE_START + 9 - 1;
         final int SEVEN_TOP_START = NINE_STROKE_END + 1;
         final int SEVEN_TOP_END = SEVEN_TOP_START + 10 - 1;
         final int SEVEN_STROKE_START = SEVEN_TOP_END + 1;
@@ -103,17 +103,17 @@ public class RGB extends SubsystemBase {
             LEDs.setHSV(j, (int) (j * 2.95), 255, 80);
         }
 
-        // Translate speed on stroke of NINE
+        // Translate speed on stroke of SEVEN
         if (TeleopSwerve.translationVal > 0) {
-            for (int j = 0; j <= NINE_STROKE_END - NINE_STROKE_START; j++) {
-                if (j < (TeleopSwerve.translationVal * 10))
-                    LEDs.setRGB(NINE_STROKE_END - j, 0, 128, 0);
+            for (int j = 0; j <= SEVEN_STROKE_END - SEVEN_STROKE_START; j++) {
+                if (j < (TeleopSwerve.translationVal * 20))
+                    LEDs.setRGB(SEVEN_STROKE_END - j, 0, 128, 0);
             }
         }
         if (TeleopSwerve.translationVal < 0) {
-            for (int j = 0; j <= NINE_STROKE_END - NINE_STROKE_START; j++) {
-                if (j < (TeleopSwerve.translationVal * -10))
-                    LEDs.setRGB(NINE_STROKE_START + j, 128, 0, 0);
+            for (int j = 0; j <= SEVEN_STROKE_END - SEVEN_STROKE_START; j++) {
+                if (j < (TeleopSwerve.translationVal * -20))
+                    LEDs.setRGB(SEVEN_STROKE_START + j, 128, 0, 0);
             }
         }
 
@@ -135,13 +135,13 @@ public class RGB extends SubsystemBase {
         if (TeleopSwerve.rotationVal > 0) {
             for (int j = 0; j <= NINE_CIRCLE_END - NINE_CIRCLE_START; j++) {
                 if (j < (TeleopSwerve.rotationVal * 100))
-                    LEDs.setRGB(NINE_CIRCLE_END - j, 128, 0, 0);
+                    LEDs.setRGB(NINE_CIRCLE_END - j, 128, 10, 0);
             }
         }
         if (TeleopSwerve.rotationVal < 0) {
             for (int j = 0; j <= NINE_CIRCLE_END - NINE_CIRCLE_START; j++) {
                 if (j < (TeleopSwerve.rotationVal * -100))
-                    LEDs.setRGB(NINE_CIRCLE_START + j, 80, 0, 60);
+                    LEDs.setRGB(NINE_CIRCLE_START + j, 20, 0, 180);
             }
         }
 
