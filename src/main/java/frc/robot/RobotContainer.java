@@ -5,6 +5,7 @@
 package frc.robot;
 
 import java.util.List;
+import java.util.function.Function;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -26,11 +27,16 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.SetLEDs;
 import frc.robot.commands.TeleopSwerve;
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.RGB.LEDColor;
+import frc.robot.subsystems.RGB.LEDMode;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -77,6 +83,8 @@ public class RobotContainer {
     //m_pneumatics.reverseLiftSolenoid();
     //m_pneumatics.reverseBlockSolenoid();
     m_swerve.setDefaultCommand(createSwerveCommand(true));
+    // Moving the RGB to use commands so that you can control the LED states here, rather than having to add more inputs directly inside the RGB class. This allows you to tack a SetLeds command onto triggers in this class directly
+    m_RGB.setDefaultCommand(new RunCommand(() -> m_RGB.setLedState(m_allianceIsBlue ? LEDColor.Blue : LEDColor.Red, LEDMode.Loop), m_RGB));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -89,8 +97,6 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Mode", autoChooser);
 
     // SmartDashboard.putNumber("rotationAxis", rotationAxis);
-
-    m_RGB.LEDs.setRGB(7, 128, 128, 128);
 
   }
 
@@ -131,13 +137,22 @@ public class RobotContainer {
     driver.back().onTrue(createSwerveCommand(true));
     driver.start().onTrue(createSwerveCommand(false));
 
+    // Sample launch button - StartEndCommand is helpful for this
+    // driver.rightTrigger().whileTrue(new StartEndCommand(() -> m_launcher.setLaunchMotors(), () -> m_launcher.stopLaunchMotors(), m_launcher).alongWith(new SetLEDs(m_RGB, LEDColor.Green, LEDMode.Solid)));
+
+    // A simple inline function to create a function that resets the odometry angle, but then keeps the SetLEDs command running until the command is ended/interupted
+    Function<Rotation2d, Command> getResetHeadingCommand = (Rotation2d rotation) -> 
+      new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(0)))
+      .andThen(new SetLEDs(m_RGB, LEDColor.Green, LEDMode.Solid));
+
     // I put this on the d-pad because 131 uses the 4 main directions to fix our orientaion (if the robot is facing left, we'll tell the gyro we're at 90*)
-    // This only matters once you've gotten field centric 
-    driver.povUp().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(0))));
-    driver.povLeft().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(90))));
-    driver.povDown().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(180))));
-    driver.povRight().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(-90))));
-    /*
+    // This only matters once you've gotten field centric working
+    driver.povUp().whileTrue(getResetHeadingCommand.apply(Rotation2d.fromDegrees(0)));
+    driver.povLeft().whileTrue(getResetHeadingCommand.apply(Rotation2d.fromDegrees(90)));
+    driver.povDown().whileTrue(getResetHeadingCommand.apply(Rotation2d.fromDegrees(180)));
+    driver.povRight().whileTrue(getResetHeadingCommand.apply(Rotation2d.fromDegrees(-90)));
+
+    /* // Replace these with StartEndCommands (maybe set the requirements on them?)
     liftSolenoid.onTrue(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));
     liftSolenoid.onFalse(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));
     blockSolenoid.onTrue(new InstantCommand(() -> m_pneumatics.toggleBlockSolenoid()));

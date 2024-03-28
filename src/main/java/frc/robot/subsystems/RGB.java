@@ -11,6 +11,32 @@ public class RGB extends SubsystemBase {
     private AddressableLED m_led;
     public AddressableLEDBuffer LEDs;
 
+    public enum LEDColor {
+        Default(0, 0, 0),
+        Blue(0, 0, 88),
+        Red(88, 0, 0),
+        Green(0, 128, 0),
+        Gray(128, 128, 128);
+
+        public final int red;
+        public final int green;
+        public final int blue;
+
+        private LEDColor(int red, int green, int blue) {
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
+        }
+    }
+
+    public enum LEDMode {
+        Loop,
+        Solid;
+    }
+
+    private LEDColor m_ledColor = LEDColor.Default;
+    private LEDMode m_ledMode = LEDMode.Solid;
+
     public RGB(int port) {
         m_led = new AddressableLED(port);
 
@@ -30,6 +56,11 @@ public class RGB extends SubsystemBase {
         m_led.start();
     }
 
+    public void setLedState(LEDColor color, LEDMode mode) {
+        m_ledColor = color;
+        m_ledMode = mode;
+    }
+
     public void clearLEDs(int start, int end) {
         for (int i = start; i <= end; i++)
             LEDs.setRGB(i, 0, 0, 0);
@@ -46,6 +77,22 @@ public class RGB extends SubsystemBase {
     public void periodic() {
         clearLEDs();
         
+        // I know this logic is different than before, but I think if you want to use LED indicators on the robot, you want to use a Solid pattern so it can be easily seen across the field
+        // And you really only need the Alliance Color during startup to make sure you have selected the right alliance in the Driver Station
+        switch(m_ledMode) {
+            case Loop:
+                loopLEDs();
+                break;
+            case Solid:
+                solidLEDs();
+                break;
+        }
+
+        // This method will be called once per scheduler run
+        m_led.setData(LEDs);
+    }
+
+    private void loopLEDs() {
         double kLoopSpeed = 27 * 60.0 / kNumLEDsInRing;
 
         double matchTime = Timer.getMatchTime();
@@ -63,25 +110,14 @@ public class RGB extends SubsystemBase {
                 LEDs.setRGB((loopTimeInt + i * 1) % kNumLEDsInRing, 88, 0, 0);
         }
 
-        // Original red/green toggle
-        boolean even = fpgaTimeInt % 2 == 0;
-        //LEDs.setRGB(10, even ? 128 : 0, even ? 0 : 128, 0);
-
-        // If zeroGyro is being commanded
-        if (RobotContainer.zeroGyro.getAsBoolean()) {
-            LEDs.setRGB(11, 0, 128, 0);
-        }
-
-         // If launchNote is being commanded
-        if (RobotContainer.launchNote.getAsBoolean()) {
-            LEDs.setRGB(12, 128, 128, 128);
-        }
-
         SmartDashboard.putNumber("Match Time", matchTime);
         SmartDashboard.putNumber("FPGA Time", fpgaTime);
-    
-        // This method will be called once per scheduler run
-        m_led.setData(LEDs);
+    }
+
+    private void solidLEDs() {
+        for (int i = 0; i < kNumLEDsInRing; i++) {
+            LEDs.setRGB(i, m_ledColor.red, m_ledColor.green, m_ledColor.blue);
+        }
     }
   
     @Override
