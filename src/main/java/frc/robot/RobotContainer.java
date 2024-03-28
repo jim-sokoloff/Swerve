@@ -133,7 +133,10 @@ public class RobotContainer {
 
     // I put this on the d-pad because 131 uses the 4 main directions to fix our orientaion (if the robot is facing left, we'll tell the gyro we're at 90*)
     // This only matters once you've gotten field centric 
-    driver.povUp().onTrue(new InstantCommand(() -> m_swerve.zeroGyro()));
+    driver.povUp().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(0))));
+    driver.povLeft().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(90))));
+    driver.povDown().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(180))));
+    driver.povRight().onTrue(new InstantCommand(() -> m_swerve.resetHeading(Rotation2d.fromDegrees(-90))));
     /*
     liftSolenoid.onTrue(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));
     liftSolenoid.onFalse(new InstantCommand(() -> m_pneumatics.toggleLiftSolenoid()));

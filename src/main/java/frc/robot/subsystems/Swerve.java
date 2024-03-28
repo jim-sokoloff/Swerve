@@ -20,6 +20,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADIS16448_IMU;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
 //import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -40,16 +42,20 @@ public class Swerve extends SubsystemBase {
 
   private boolean JTS_driveEnabled = true;
 
+  private ShuffleboardTab swerveDashboardLogging;
+
  /* private final DifferentialDrivetrainSim m_drivetrainSimulator =
     new SimSwerveDrivetrain(null, null, null, null) DifferentialDrivetrainSim(
         m_drivetrainSystem, DCMotor.getCIM(2), 8, kTrackWidth, kWheelRadius, null);
 */
 
   public Swerve() {
+    swerveDashboardLogging = Shuffleboard.getTab("Swerve");
+
     //gyro = new AHRS(SPI.Port.kMXP, (byte) 100);
     gyro = new ADIS16448_IMU();
     gyro.calibrate(); //added line
-    zeroGyro();
+    gyro.reset();
 
     mSwerveMods = new SwerveModule[] {
         new SwerveModule(0, Constants.Swerve.Mod0.constants),
@@ -94,6 +100,10 @@ public class Swerve extends SubsystemBase {
     // Set up custom logging to add the current path to a field 2d widget
     PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
 
+    // These will be logged to the NetworkTable under "Shuffleboard/Swerve/"
+    // You can use the Shuffleboard or SmartDashboard and both will be visible on dashboards - I just wanted to show off this different style. I like this format for setting up values that I want logged throughout the lifecycle of the subsystem
+    swerveDashboardLogging.addNumber("Gyro Angle Degress", () -> getYaw().getDegrees());
+    swerveDashboardLogging.addNumber("Odometry Angle Degress", () -> getHeadingDegrees());
   }
 
   public void driveFieldRelative(ChassisSpeeds fieldRelativeSpeeds) {
@@ -110,7 +120,7 @@ public class Swerve extends SubsystemBase {
     SwerveModuleState[] swerveModuleStates = Constants.Swerve.swerveKinematics.toSwerveModuleStates(
         fieldRelative && Constants.JTS_false   // HACK
             ? ChassisSpeeds.fromFieldRelativeSpeeds(
-                translation.getX(), translation.getY(), rotation, getYaw())
+                translation.getX(), translation.getY(), rotation, getPose().getRotation()) // Changing to the odometry angle helps keep the robot lined up well
             : new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
 
@@ -184,7 +194,8 @@ public class Swerve extends SubsystemBase {
   }
 
   public void resetPoseEstimator(Pose2d pose) {
-    swervePoseEstimator.resetPosition(getYaw(), getPositions(), pose);
+    swervePoseEstimator.resetPosition(getYaw(), getPositions(), pose); // This is called by PathPlanner. 
+    // If you were using the Gyro directly for the swerve angle, then if PathPlanner wanted to say you were at angle 45*, but the gyro was reading 0*, then you wouldn't move in the right direction
   }
 
   public SwerveModulePosition[] getPositions() {
@@ -203,10 +214,17 @@ public class Swerve extends SubsystemBase {
     return states;
   }
 
-  public void zeroGyro() {
-    gyro.reset();
+  // Rather than resetting the gyro angle, all you need to do update the odometry
+  // If the target heading is 90* and the current gyro angle is 135*, it tells the odometry that 135* from the gyro maps to 90* for the swerve
+  public void resetHeading(Rotation2d targetHeading) {
+    var updatedPose = new Pose2d(getX(), getY(), targetHeading);
+    resetPoseEstimator(updatedPose);
   }
 
+  /**
+   * This is the gyro's yaw angle
+   * NOTE: this should only be used to supply values to `swervePoseEstimator` and `getPose().getRotation()` should be used for actually controlling the swerve drive in field centric mode
+   */
   public Rotation2d getYaw() {
     return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getGyroAngleZ())
         : Rotation2d.fromDegrees(gyro.getGyroAngleZ());
