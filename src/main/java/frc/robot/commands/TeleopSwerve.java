@@ -26,6 +26,11 @@ public class TeleopSwerve extends Command {
   public double strafeMax = 5;
   public double rotationMax = 1;
 
+  public static double translationVal;
+  public static double strafeVal;
+  public static double rotationVal;
+
+
   public TeleopSwerve(
       Swerve s_Swerve,
       DoubleSupplier translationSup,
@@ -44,13 +49,13 @@ public class TeleopSwerve extends Command {
   @Override
   public void execute() {
     /* Get Values, Deadband*/
-    double translationVal =
+    translationVal =
         translationLimiter.calculate(
             MathUtil.applyDeadband(translationSup.getAsDouble(), Constants.Swerve.stickDeadband));
-    double strafeVal =
+    strafeVal =
         strafeLimiter.calculate(
             MathUtil.applyDeadband(strafeSup.getAsDouble(), Constants.Swerve.stickDeadband));
-    double rotationVal =
+    rotationVal =
         rotationLimiter.calculate(
             MathUtil.applyDeadband(rotationSup.getAsDouble(), Constants.Swerve.stickDeadband));
 

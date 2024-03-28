@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 
 public class Swerve extends SubsystemBase {
   // The gyro sensor
@@ -113,11 +114,19 @@ public class Swerve extends SubsystemBase {
                 translation.getX(), translation.getY(), rotation, getYaw())
             : new ChassisSpeeds(translation.getX(), translation.getY(), rotation));
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, Constants.Swerve.maxSpeed);
+    
+    SmartDashboard.putBoolean("FieldRelative", fieldRelative);
+    SmartDashboard.putNumber("drive-x", translation.getX());
+    SmartDashboard.putNumber("drive-y", translation.getY());
+    SmartDashboard.putNumber("rotation", rotation);
+    SmartDashboard.putBoolean("isOpenLoop", isOpenLoop);
 
     for (SwerveModule mod : mSwerveMods) {
       if (!JTS_driveEnabled) {
         swerveModuleStates[mod.moduleNumber].speedMetersPerSecond = 0;
       }
+      if (!Constants.JTS_useCAN)
+        continue;
       if (mod.moduleNumber > 3)
         continue;
     // Module 0 [FL] is good (no clatter on accel/decel)
@@ -135,17 +144,10 @@ public class Swerve extends SubsystemBase {
       
       // Slow things down for now.
       if (Constants.JTS_true)
-        swerveModuleStates[mod.moduleNumber].speedMetersPerSecond *= Constants.JTS_driveMultiplier;
+        swerveModuleStates[mod.moduleNumber].speedMetersPerSecond *= RobotContainer.JTS_driveMultiplier;
 
       mod.setDesiredState(swerveModuleStates[mod.moduleNumber], isOpenLoop);
-    }
-    SmartDashboard.putBoolean("FieldRelative", fieldRelative);
-    SmartDashboard.putNumber("drive-x", translation.getX());
-    SmartDashboard.putNumber("drive-y", translation.getY());
-    SmartDashboard.putNumber("rotation", rotation);
-    SmartDashboard.putBoolean("isOpenLoop", isOpenLoop);
-    
-    
+    }    
   }
 
   /* Used by SwerveControllerCommand in Auto */

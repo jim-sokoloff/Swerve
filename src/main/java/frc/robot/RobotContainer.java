@@ -17,6 +17,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoubleArraySubscriber;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -66,6 +69,19 @@ public class RobotContainer {
   private static boolean m_allianceIsBlue = false;
   private static int m_allianceStationNumber = 7;
 
+  /* Configuration data from network tables */
+  private DoubleArraySubscriber m_configurationSubscription;
+
+  /* Somewhat hacky */
+  public static double JTS_driveMultiplier = 1.00;
+  public static double JTS_configDouble1 = 0.0;
+  public static double JTS_configDouble2 = 0.0;
+  public static double JTS_configDouble3 = 0.0;
+  public static boolean JTS_configBoolean1 = true;
+  public static boolean JTS_configBoolean2 = true;
+  public static boolean JTS_configBoolean3 = true;
+  
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -97,6 +113,18 @@ public class RobotContainer {
 
     m_RGB.LEDs.setRGB(7, 128, 128, 128);
 
+    InitializeDriverDashboard();
+
+
+  }
+
+  private final void InitializeDriverDashboard() {
+    SmartDashboard.putStringArray("Auto List", new String[] {"Drive Forwards", "Drive Backwards", "Shoot"});     
+    
+    SmartDashboard.putNumber("DB/Slider 0", 0.5);
+
+    NetworkTable networkTable = NetworkTableInstance.getDefault().getTable("SmartDashboard");
+    m_configurationSubscription = networkTable.getDoubleArrayTopic("config").subscribe(new double[] {0.5, 0.0, 1.0, 2.0});
   }
 
   /**
@@ -210,5 +238,18 @@ public class RobotContainer {
     m_allianceStationNumber = DriverStation.getLocation().orElse(5);
   }
 
+  public final void UpdateConfiguration() {
+    JTS_driveMultiplier = SmartDashboard.getNumber("DB/Slider 0", 0.5);
+    if (JTS_driveMultiplier > 1) {
+      JTS_driveMultiplier = 1;
+      SmartDashboard.putNumber("DB/Slider 0", JTS_driveMultiplier);
+    }
+    if (JTS_driveMultiplier < 0.1) {
+      JTS_driveMultiplier = 0.1;
+      SmartDashboard.putNumber("DB/Slider 0", JTS_driveMultiplier);
+    }
+      
+    
+  }
 }
 

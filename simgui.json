@@ -43,10 +43,10 @@
     }
   },
   "NetworkTables": {
-    "Transitory Values": {
-      "open": false
-    },
     "transitory": {
+      "PathPlanner": {
+        "open": true
+      },
       "SmartDashboard": {
         "double[]##v_/SmartDashboard/Odometry": {
           "open": true
@@ -55,6 +55,9 @@
           "open": true
         },
         "double[]##v_/SmartDashboard/Theoretical States": {
+          "open": true
+        },
+        "double[]##v_/SmartDashboard/config": {
           "open": true
         },
         "open": true

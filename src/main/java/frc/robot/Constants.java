@@ -18,7 +18,7 @@ public final class Constants {
   // Debugging swerve helper
   public final static boolean JTS_false = false;
   public final static boolean JTS_true = true;
-  public static double JTS_driveMultiplier = 1.00;
+  public final static boolean JTS_useCAN = true;
 
   public static final class Swerve {
 

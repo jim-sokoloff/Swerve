@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.networktables.DoubleArraySubscriber;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +22,7 @@ public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
   private RobotContainer m_robotContainer;
 
+
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -33,6 +37,8 @@ public class Robot extends TimedRobot {
 
     // Update alliance color every second (just in case we lose comms or power).
     addPeriodic(() -> m_robotContainer.UpdateAlliance(), 1);
+    addPeriodic(() -> m_robotContainer.UpdateConfiguration(), 0.5);
+    
   }
 
   /**
